@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'localflavor'
 ]
 
 MIDDLEWARE = [
@@ -112,6 +113,7 @@ LOCALE_PATHS = [
     os.path.join(BASE_DIR, 'multichoice/locale/'),
     os.path.join(BASE_DIR, 'quiz/locale/'),
     os.path.join(BASE_DIR, 'true_false/locale/'),
+    os.path.join(BASE_DIR, 'customuser/locale/')
 ]
 
 # Internationalization

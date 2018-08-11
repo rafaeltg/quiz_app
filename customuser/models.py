@@ -54,7 +54,10 @@ class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(verbose_name=_('Email'),
                               unique=True)
 
-    cpf = models.BigIntegerField(unique=True)
+    cpf = models.CharField(max_length=14,
+                           null=False,
+                           blank=False,
+                           verbose_name=_('CPF'))
 
     phone = models.CharField(max_length=15,
                              blank=True,
@@ -65,7 +68,8 @@ class User(AbstractBaseUser, PermissionsMixin):
                            choices=SEX_CHOICES,
                            verbose_name=_('Sex'))
 
-    data_de_nascimento = models.DateField(null=True)
+    birth_date = models.DateField(verbose_name=_('Date of birth'),
+                                  null=True)
 
     date_joined = models.DateTimeField(verbose_name=_('Date joined'),
                                        auto_now_add=True)

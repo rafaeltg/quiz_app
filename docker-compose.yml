@@ -5,7 +5,7 @@ services:
     image: postgres
 
   web:
-    image: app
+    image: quizapp
     command: python3 manage.py runserver 0.0.0.0:8000
     volumes:
       - .:/code
@@ -18,7 +18,7 @@ services:
 
   migration:
     build: .
-    image: app
+    image: quizapp
     command: bash -c "python3 manage.py makemigrations; python3 manage.py migrate --noinput"
     volumes:
       - .:/code

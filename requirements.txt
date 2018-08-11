@@ -1,4 +1,5 @@
 Django
 django-extensions
 django-model-utils
+django-localflavor
 psycopg2
