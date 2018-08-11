@@ -3,13 +3,24 @@ version: '3'
 services:
   db:
     image: postgres
-  
+
   web:
-    build: .
+    image: app
     command: python3 manage.py runserver 0.0.0.0:8000
     volumes:
       - .:/code
     ports:
-      - "8000:8000"
+      - 8050:8000
+    links:
+      - db
     depends_on:
+      - migration
+
+  migration:
+    build: .
+    image: app
+    command: bash -c "python3 manage.py makemigrations; python3 manage.py migrate --noinput"
+    volumes:
+      - .:/code
+    links:
       - db

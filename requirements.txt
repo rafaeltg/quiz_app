@@ -1,4 +1,4 @@
 Django
 django-extensions
-whitenoise
-gunicorn
+django-model-utils
+psycopg2
