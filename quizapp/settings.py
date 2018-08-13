@@ -31,9 +31,10 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'customuser.apps.CustomuserConfig',
     'quiz.apps.QuizConfig',
     'multichoice.apps.MultiChoiceConfig',
-    'customuser.apps.CustomuserConfig',
+    'true_false.apps.TFConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

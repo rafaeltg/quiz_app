@@ -15,7 +15,6 @@ class CategoryManager(models.Manager):
 
     def new_category(self, category):
         new_category = self.create(category=re.sub('\s+', '-', category).lower())
-
         new_category.save()
         return new_category
 
@@ -82,34 +81,27 @@ class Quiz(models.Model):
                                          help_text=_("If yes, only one attempt by a user will be permitted."
                                                      "Non users cannot sit this exam."))
 
-    pass_mark = models.SmallIntegerField( blank=True,
-                                          default=0,
-                                          verbose_name=_("Pass Mark"),
-                                          help_text=_("Percentage required to pass exam."),
-                                          validators=[MaxValueValidator(100)])
+    pass_mark = models.SmallIntegerField(blank=True,
+                                         default=0,
+                                         verbose_name=_("Pass Mark"),
+                                         help_text=_("Percentage required to pass exam."),
+                                         validators=[MaxValueValidator(100)])
 
-    success_text = models.TextField(
-        blank=True,
-        help_text=_("Displayed if user passes."),
-        verbose_name=_("Success Text"))
+    success_text = models.TextField(blank=True,
+                                    verbose_name=_("Success Text"),
+                                    help_text=_("Displayed if user passes."))
 
-    fail_text = models.TextField(
-        verbose_name=_("Fail Text"),
-        blank=True,
-        help_text=_("Displayed if user fails."))
+    fail_text = models.TextField(blank=True,
+                                 verbose_name=_("Fail Text"),
+                                 help_text=_("Displayed if user fails."))
 
-    draft = models.BooleanField(
-        blank=True, default=False,
-        verbose_name=_("Draft"),
-        help_text=_("If yes, the quiz is not displayed in the quiz list and can only be"
-                    " taken by users who can edit quizzes."))
+    draft = models.BooleanField(blank=True,
+                                default=False,
+                                verbose_name=_("Draft"),
+                                help_text=_("If yes, the quiz is not displayed in the quiz list and can only be "
+                                            "taken by users who can edit quizzes."))
 
     def save(self, force_insert=False, force_update=False, *args, **kwargs):
-        self.url = re.sub('\s+', '-', self.url).lower()
-
-        self.url = ''.join(letter for letter in self.url if
-                           letter.isalnum() or letter == '-')
-
         if self.single_attempt is True:
             self.exam_paper = True
 
@@ -337,20 +329,17 @@ class Sitting(models.Model):
 
     current_score = models.IntegerField(verbose_name=_("Current Score"))
 
-    complete = models.BooleanField(
-        default=False,
-        blank=False,
-        verbose_name=_("Complete"))
+    complete = models.BooleanField(default=False,
+                                   blank=False,
+                                   verbose_name=_("Complete"))
 
     # json object in which the question PK is stored with the answer the user gave.
-    user_answers = models.TextField(
-        blank=True,
-        default='{}',
-        verbose_name=_("User Answers"))
+    user_answers = models.TextField(blank=True,
+                                    default='{}',
+                                    verbose_name=_("User Answers"))
 
-    start = models.DateTimeField(
-        auto_now_add=True,
-        verbose_name=_("Start"))
+    start = models.DateTimeField(auto_now_add=True,
+                                 verbose_name=_("Start"))
 
     end = models.DateTimeField(null=True,
                                blank=True,
