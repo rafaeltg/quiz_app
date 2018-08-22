@@ -47,11 +47,11 @@ class Quiz(models.Model):
                                    blank=True,
                                    help_text=_("a description of the quiz"))
 
-    category = models.ForeignKey(Category,
-                                 null=True,
-                                 blank=True,
-                                 verbose_name=_("Category"),
-                                 on_delete=models.CASCADE)
+    #category = models.ForeignKey(Category,
+    #                             null=True,
+    #                             blank=True,
+    #                             verbose_name=_("Category"),
+    #                             on_delete=models.CASCADE)
 
     random_order = models.BooleanField(blank=False,
                                        default=False,
@@ -499,6 +499,9 @@ class Question(models.Model):
                                    blank=True,
                                    help_text=_("Explanation to be shown after the question has been answered."),
                                    verbose_name=_('Explanation'))
+
+    max_time = models.DurationField(verbose_name=_('Time limit'),
+                                    help_text=_("Time limit to answer the question"))
 
     objects = InheritanceManager()
 

@@ -10,7 +10,7 @@ services:
     volumes:
       - .:/code
     ports:
-      - 8050:8000
+      - 8060:8000
     links:
       - db
     depends_on:

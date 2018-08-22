@@ -31,10 +31,10 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    'customuser.apps.CustomuserConfig',
-    'quiz.apps.QuizConfig',
-    'multichoice.apps.MultiChoiceConfig',
-    'true_false.apps.TFConfig',
+    'customuser',
+    'quiz',
+    'multichoice',
+    'true_false',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -59,7 +59,10 @@ ROOT_URLCONF = 'quizapp.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [
+            os.path.join(BASE_DIR, 'templates'),
+            os.path.join(BASE_DIR, 'customuser/templates')
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

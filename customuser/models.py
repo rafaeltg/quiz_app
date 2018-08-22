@@ -9,6 +9,7 @@ from django.utils import timezone
 SEX_CHOICES = (
     ('male', _('Male')),
     ('female', _('Female')),
+    ('other', _('Other'))
 )
 
 
@@ -47,7 +48,7 @@ class UserManager(BaseUserManager):
 class User(AbstractBaseUser, PermissionsMixin):
 
     first_name = models.CharField(max_length=30,
-                                  blank=True,
+                                  blank=False,
                                   verbose_name=_('First name'))
 
     last_name = models.CharField(max_length=30,
@@ -55,7 +56,8 @@ class User(AbstractBaseUser, PermissionsMixin):
                                  verbose_name=_('Last name'))
 
     email = models.EmailField(verbose_name=_('Email'),
-                              unique=True)
+                              unique=True,
+                              blank=False)
 
     cpf = models.CharField(max_length=14,
                            unique=True,
@@ -68,29 +70,33 @@ class User(AbstractBaseUser, PermissionsMixin):
                              verbose_name=_('Phone'))
 
     sex = models.CharField(max_length=9,
-                           null=True,
+                           blank=False,
                            choices=SEX_CHOICES,
                            verbose_name=_('Sex'))
 
     birth_date = models.DateField(verbose_name=_('Date of birth'),
-                                  null=True)
+                                  null=True,
+                                  blank=False)
 
     date_joined = models.DateTimeField(verbose_name=_('Date joined'),
                                        default=timezone.now)
 
     is_active = models.BooleanField(verbose_name=_('Active'),
+                                    editable=False,
                                     default=True)
 
-    is_super_user = models.BooleanField(default=False)
+    is_super_user = models.BooleanField(default=False,
+                                        editable=False)
 
     is_staff = models.BooleanField(_('staff status'),
                                    default=False,
+                                   editable=False,
                                    help_text=_('Designates whether the user can log into this admin site.'))
 
     objects = UserManager()
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['first_name', 'last_name', 'cpf']
+    REQUIRED_FIELDS = ['first_name', 'last_name', 'cpf', 'sex']
 
     class Meta:
         verbose_name = _('User')

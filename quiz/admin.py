@@ -36,11 +36,10 @@ class QuizAdminForm(forms.ModelForm):
 class QuizAdmin(admin.ModelAdmin):
     form = QuizAdminForm
 
-    list_display = ('title', 'category', )
-    list_filter = ('category',)
-    search_fields = ('description', 'category', )
+    list_display = ('title', )
+    search_fields = ('description', )
 
-
+'''
 class CategoryAdmin(admin.ModelAdmin):
     search_fields = ('category', )
 
@@ -51,8 +50,9 @@ class ProgressAdmin(admin.ModelAdmin):
             create a user section
     """
     search_fields = ('user', 'score', )
+'''
 
 
 admin.site.register(Quiz, QuizAdmin)
-admin.site.register(Category, CategoryAdmin)
-admin.site.register(Progress, ProgressAdmin)
+#admin.site.register(Category, CategoryAdmin)
+#admin.site.register(Progress, ProgressAdmin)
