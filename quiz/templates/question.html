@@ -8,8 +8,6 @@
 
 {% block content %}
 
-<br />
-
 {% if question %}
 
 {% if progress %}
@@ -25,19 +23,21 @@
 
 <p class="lead">{{ question.content }}</p>
 
-<form action="" method="POST">{% csrf_token %}
-  <input type=hidden name="question_id" value="{{ question.id }}">
+<form action="" method="POST">
+    {% csrf_token %}
 
-  <ul class="list-group">
+    <input type=hidden name="question_id" value="{{ question.id }}">
 
-	{% for answer in form.answers %}
-	  <li class="list-group-item">
-	    {{ answer }}
-	  </li>
-	{% endfor %}
+    <ul class="list-group">
 
-  </ul>
-  <input type="submit" value={% trans "Check" %} class="btn btn-large btn-block btn-warning" >
+        {% for answer in form.answers %}
+        <li class="list-group-item">
+            {{ answer }}
+        </li>
+        {% endfor %}
+
+    </ul>
+    <input type="submit" value={% trans "Check" %} class="btn btn-large btn-block btn-warning" >
 </form>
 
 {% endif %}

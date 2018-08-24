@@ -35,13 +35,13 @@ INSTALLED_APPS = [
     'quiz',
     'multichoice',
     'true_false',
+    'localflavor',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'localflavor'
 ]
 
 MIDDLEWARE = [
@@ -61,6 +61,7 @@ TEMPLATES = [
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
             os.path.join(BASE_DIR, 'templates'),
+            os.path.join(BASE_DIR, 'quiz/templates'),
             os.path.join(BASE_DIR, 'customuser/templates')
         ],
         'APP_DIRS': True,

@@ -11,32 +11,6 @@ from django.conf import settings
 from model_utils.managers import InheritanceManager
 
 
-class CategoryManager(models.Manager):
-
-    def new_category(self, category):
-        new_category = self.create(category=re.sub('\s+', '-', category).lower())
-        new_category.save()
-        return new_category
-
-
-class Category(models.Model):
-
-    category = models.CharField(verbose_name=_("Category"),
-                                max_length=250,
-                                blank=True,
-                                unique=True,
-                                null=True)
-
-    objects = CategoryManager()
-
-    class Meta:
-        verbose_name = _("Category")
-        verbose_name_plural = _("Categories")
-
-    def __str__(self):
-        return self.category
-
-
 class Quiz(models.Model):
 
     title = models.CharField(verbose_name=_("Title"),
@@ -47,11 +21,10 @@ class Quiz(models.Model):
                                    blank=True,
                                    help_text=_("a description of the quiz"))
 
-    #category = models.ForeignKey(Category,
-    #                             null=True,
-    #                             blank=True,
-    #                             verbose_name=_("Category"),
-    #                             on_delete=models.CASCADE)
+    url = models.SlugField(max_length=60,
+                           blank=False,
+                           help_text=_("a user friendly url"),
+                           verbose_name=_("user friendly url"))
 
     random_order = models.BooleanField(blank=False,
                                        default=False,
@@ -124,16 +97,7 @@ class Quiz(models.Model):
     def get_max_score(self):
         return self.get_questions().count()
 
-    def anon_score_id(self):
-        return str(self.id) + "_score"
-
-    def anon_q_list(self):
-        return str(self.id) + "_q_list"
-
-    def anon_q_data(self):
-        return str(self.id) + "_data"
-
-
+'''
 class ProgressManager(models.Manager):
 
     def new_progress(self, user):
@@ -254,7 +218,7 @@ class Progress(models.Model):
         Returns a queryset of complete exams.
         """
         return Sitting.objects.filter(user=self.user, complete=True)
-
+'''
 
 class SittingManager(models.Manager):
 
@@ -472,6 +436,32 @@ class Sitting(models.Model):
         answered = len(json.loads(self.user_answers))
         total = self.get_max_score
         return answered, total
+
+
+class CategoryManager(models.Manager):
+
+    def new_category(self, category):
+        new_category = self.create(category=re.sub('\s+', '-', category).lower())
+        new_category.save()
+        return new_category
+
+
+class Category(models.Model):
+
+    category = models.CharField(verbose_name=_("Category"),
+                                max_length=250,
+                                blank=True,
+                                unique=True,
+                                null=True)
+
+    objects = CategoryManager()
+
+    class Meta:
+        verbose_name = _("Category")
+        verbose_name_plural = _("Categories")
+
+    def __str__(self):
+        return self.category
 
 
 class Question(models.Model):
