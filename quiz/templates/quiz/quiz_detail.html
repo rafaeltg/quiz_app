@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}
+{{ quiz.title }}
+{% endblock %}
+
+{% block content %}
+
+<h2>{{ quiz.title }}</h2>
+
+<p>{{ quiz.description }}</p>
+
+<p>
+    <a href="{% url 'quiz_question' quiz_name=quiz.url %}">
+	    {% trans "Start quiz" %}
+    </a>
+
+    <a href="{% url 'quiz_ranking' quiz_name=quiz.url %}">
+	    {% trans "Ranking" %}
+    </a>
+</p>
+
+{% endblock %}

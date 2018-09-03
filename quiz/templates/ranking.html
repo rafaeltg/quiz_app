@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}{% trans "Ranking" %}{% endblock %}
+
+{% block content %}
+
+{% if sitting_list %}
+
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>{% trans "User" %}</th>
+			    <th>{% trans "Score" %}(%)</th>
+                <th>{% trans "Completed" %}</th>
+			  <th></th>
+			</tr>
+        </thead>
+
+        <tbody>
+
+        {% for sitting in sitting_list %}
+            <tr>
+                <td>{{ sitting.user }}</td>
+                <td>{{ sitting.percent_correct }}</td>
+                <td>{{ sitting.end|date }}</td>
+			</tr>
+
+        {% endfor %}
+
+        </tbody>
+
+    </table>
+
+    {% else %}
+
+        <p>{% trans "There are no attempts for this quiz yet." %}.</p>
+
+    {% endif %}
+
+{% endblock %}

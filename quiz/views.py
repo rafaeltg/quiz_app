@@ -15,6 +15,7 @@ class QuizMarkerMixin(object):
 
 
 class SittingFilterTitleMixin(object):
+
     def get_queryset(self):
         queryset = super(SittingFilterTitleMixin, self).get_queryset()
         quiz_filter = self.request.GET.get('quiz_filter')
@@ -46,21 +47,14 @@ class QuizDetailView(DetailView):
         return self.render_to_response(context)
 
 
-class CategoriesListView(ListView):
-    model = Category
-
-
-class QuizMarkingList(QuizMarkerMixin, SittingFilterTitleMixin, ListView):
+class QuizRankingView(ListView):
     model = Sitting
+    template_name = 'ranking.html'
 
     def get_queryset(self):
-        queryset = super(QuizMarkingList, self).get_queryset().filter(complete=True)
-
-        user_filter = self.request.GET.get('user_filter')
-        if user_filter:
-            queryset = queryset.filter(user__username__icontains=user_filter)
-
-        return queryset
+        quiz = get_object_or_404(Quiz, url=self.kwargs['quiz_name'])
+        queryset = super(QuizRankingView, self).get_queryset().filter(quiz=quiz, complete=True)
+        return queryset.order_by('-current_score')
 
 
 class QuizMarkingDetail(QuizMarkerMixin, DetailView):
@@ -160,9 +154,9 @@ class QuizTake(FormView):
     def final_result_user(self):
         results = {
             'quiz': self.quiz,
-            'score': self.sitting.get_current_score,
-            'max_score': self.sitting.get_max_score,
-            'percent': self.sitting.get_percent_correct,
+            'score': self.sitting.score,
+            'max_score': self.sitting.max_score,
+            'percent': self.sitting.percent_correct,
             'sitting': self.sitting,
             'previous': self.previous,
         }

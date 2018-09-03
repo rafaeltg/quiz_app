@@ -3,7 +3,7 @@ from django.contrib import admin
 from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.utils.translation import ugettext_lazy as _
 
-from .models import Quiz, Category, Progress, Question
+from .models import Quiz, Question
 
 
 class QuizAdminForm(forms.ModelForm):
@@ -39,20 +39,5 @@ class QuizAdmin(admin.ModelAdmin):
     list_display = ('title', )
     search_fields = ('description', )
 
-'''
-class CategoryAdmin(admin.ModelAdmin):
-    search_fields = ('category', )
-
-
-class ProgressAdmin(admin.ModelAdmin):
-    """
-    to do:
-            create a user section
-    """
-    search_fields = ('user', 'score', )
-'''
-
 
 admin.site.register(Quiz, QuizAdmin)
-#admin.site.register(Category, CategoryAdmin)
-#admin.site.register(Progress, ProgressAdmin)
