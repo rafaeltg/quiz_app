@@ -96,26 +96,21 @@ class User(AbstractBaseUser, PermissionsMixin):
     objects = UserManager()
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['first_name', 'last_name', 'cpf', 'sex']
+    REQUIRED_FIELDS = ['first_name', 'last_name', 'cpf']
 
     class Meta:
         verbose_name = _('User')
         verbose_name_plural = _('Users')
 
     def __str__(self):
-        return self.get_full_name()
+        return self.full_name
 
-    def get_full_name(self):
+    @property
+    def full_name(self):
         """
         :return: first_name plus the last_name, with a space in between.
         """
         return '%s %s'.format(self.first_name, self.last_name).strip()
-
-    def get_short_name(self):
-        """
-        :return:  short name for the user
-        """
-        return self.first_name
 
     def email_user(self, subject, message, from_email=None, **kwargs):
         """

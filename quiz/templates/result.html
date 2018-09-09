@@ -7,3 +7,15 @@
 {% block description %} {{ quiz.title }} - {{ quiz.description }} {% endblock %}
 
 {% block content %}
+
+    <p>
+        <a href="{% url 'quiz_start_page' slug=quiz.slug %}">
+            {% trans "Finish" %}
+        </a>
+
+        <a href="{% url 'quiz_ranking' quiz_name=quiz.url %}">
+            {% trans "Ranking" %}
+        </a>
+    </p>
+
+{% endblock %}

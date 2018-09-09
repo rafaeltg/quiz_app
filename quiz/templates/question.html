@@ -31,9 +31,7 @@
     <ul class="list-group">
 
         {% for answer in form.answers %}
-        <li class="list-group-item">
-            {{ answer }}
-        </li>
+            <li class="list-group-item"> {{ answer }} </li>
         {% endfor %}
 
     </ul>
@@ -44,5 +42,8 @@
 
 <hr>
 
+    <a href={% url 'quiz_start_page' slug=quiz.slug %}">
+	    {% trans "Got to start page" %}
+    </a>
 
 {% endblock %}
