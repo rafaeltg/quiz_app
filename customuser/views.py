@@ -1,26 +1,14 @@
-from django.contrib.auth import (
-    login as django_login,
-    logout as django_logout
-)
 from django.contrib.auth import get_user_model
+from django.contrib.auth import login as django_login
 from django.utils.decorators import method_decorator
-from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.debug import sensitive_post_parameters
-
 from rest_framework import status
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.generics import GenericAPIView, RetrieveUpdateAPIView
-from rest_framework.permissions import IsAuthenticated, AllowAny
-
-from .app_settings import (
-    TokenSerializer, UserDetailsSerializer, LoginSerializer,
-    PasswordResetSerializer, PasswordResetConfirmSerializer,
-    PasswordChangeSerializer, JWTSerializer, create_token
-)
-
 from rest_framework.authtoken.models import Token
-from .serializers import UserDetailsSerializer, LoginSerializer
+from rest_framework.generics import GenericAPIView, RetrieveUpdateAPIView, CreateAPIView
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+
+from .serializers import UserSerializer, LoginSerializer, TokenSerializer
 
 sensitive_post_parameters_m = method_decorator(
     sensitive_post_parameters(
@@ -38,7 +26,7 @@ class UserDetailView(RetrieveUpdateAPIView):
     Read-only fields: pk, email
     Returns UserModel fields.
     """
-    serializer_class = UserDetailsSerializer
+    serializer_class = UserSerializer
     permission_classes = (IsAuthenticated,)
 
     def get_object(self):
@@ -85,3 +73,19 @@ class LoginView(GenericAPIView):
                                      context={'request': request})
 
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class SignUpView(CreateAPIView):
+    serializer_class = UserSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = UserSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            if user:
+                token = Token.objects.create(user=user)
+                json = serializer.data
+                json['token'] = token.key
+                return Response(json, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

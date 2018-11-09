@@ -8,7 +8,7 @@ WORKDIR /code
 ADD requirements.txt /code/
 
 RUN apt-get update && \
-    apt-get install -y gettext
+    apt-get install -y --no-install-recommends gettext
 
 RUN pip install pip -U && \
     pip install --no-cache-dir -r requirements.txt -U

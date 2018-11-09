@@ -1,30 +1,38 @@
-from django.contrib.auth import get_user_model, authenticate
-from django.conf import settings
-from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm
-from django.contrib.auth.tokens import default_token_generator
-from django.utils.http import urlsafe_base64_decode as uid_decoder
+from django.contrib.auth import authenticate
 from django.utils.translation import ugettext_lazy as _
-from django.utils.encoding import force_text
-
 from rest_framework import serializers, exceptions
-from rest_framework.exceptions import ValidationError
-
 from rest_framework.authtoken.models import Token
+from rest_framework.validators import UniqueValidator
 from .models import User
-from .utils import import_callable
 
 
-class UserDetailsSerializer(serializers.ModelSerializer):
+class UserSerializer(serializers.ModelSerializer):
+
+    email = serializers.EmailField(
+        required=True,
+        validators=[UniqueValidator(queryset=User.objects.all())])
+
+    cpf = serializers.CharField(
+        max_length=14,
+        required=True)
+
+    password = serializers.CharField(
+        min_length=128,
+        write_only=True)
 
     class Meta:
         model = User
         fields = (
-            'pk',
+            'id',
             'first_name',
             'last_name',
             'email',
-            'cpf')
-        read_only_fields = ('email', 'cpf', )
+            'cpf',
+            'phone',
+            'sex',
+            'birth_date',
+            'password')
+        read_only_fields = ('email', 'cpf',)
 
 
 class LoginSerializer(serializers.Serializer):
