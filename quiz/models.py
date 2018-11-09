@@ -7,8 +7,19 @@ from django.core.validators import MaxValueValidator, validate_comma_separated_i
 from django.utils.translation import ugettext as _
 from django.utils.timezone import now
 from django.conf import settings
-
 from model_utils.managers import InheritanceManager
+
+
+class QuizManager(models.Manager):
+
+    def __init__(self, *args, **kwargs):
+        self.no_drafts = kwargs.pop('no_drafts', True)
+        super(QuizManager, self).__init__(*args, **kwargs)
+
+    def get_queryset(self):
+        if self.no_drafts:
+            return QuizManager(self.model).filter(draft=False)
+        return QuizManager(self.model)
 
 
 class Quiz(models.Model):
@@ -79,6 +90,9 @@ class Quiz(models.Model):
                                 help_text=_("If yes, the quiz is not displayed in the quiz list and can only be "
                                             "taken by users who can edit quizzes."))
 
+    objects = QuizManager(no_drafts=True)
+    all_objects = QuizManager()
+
     def save(self, force_insert=False, force_update=False, *args, **kwargs):
         if self.single_attempt is True:
             self.exam_paper = True
@@ -103,13 +117,79 @@ class Quiz(models.Model):
         return self.get_questions().count()
 
 
+class CategoryManager(models.Manager):
+
+    def new_category(self, category):
+        new_category = self.create(category=re.sub('\s+', '-', category).lower())
+        new_category.save()
+        return new_category
+
+
+class Category(models.Model):
+
+    category = models.CharField(verbose_name=_("Category"),
+                                max_length=250,
+                                blank=True,
+                                unique=True,
+                                null=True)
+
+    objects = CategoryManager()
+
+    class Meta:
+        verbose_name = _("Category")
+        verbose_name_plural = _("Categories")
+
+    def __str__(self):
+        return self.category
+
+
+class Question(models.Model):
+    """
+    Base class for all question types.
+    """
+
+    quiz = models.ManyToManyField(Quiz,
+                                  verbose_name=_("Quiz"),
+                                  related_name='questions',
+                                  blank=True)
+
+    category = models.ForeignKey(Category,
+                                 verbose_name=_("Category"),
+                                 blank=True,
+                                 null=True,
+                                 on_delete=models.CASCADE)
+
+    content = models.CharField(max_length=1000,
+                               blank=False,
+                               help_text=_("Enter the question text that you want displayed"),
+                               verbose_name=_('Question'))
+
+    explanation = models.TextField(max_length=2000,
+                                   blank=True,
+                                   help_text=_("Explanation to be shown after the question has been answered."),
+                                   verbose_name=_('Explanation'))
+
+    max_time = models.IntegerField(verbose_name=_('Time limit'),
+                                   help_text=_("Time limit to answer the question in seconds."))
+
+    objects = InheritanceManager()
+
+    class Meta:
+        verbose_name = _("Question")
+        verbose_name_plural = _("Questions")
+        ordering = ['category']
+
+    def __str__(self):
+        return self.content
+
+
 class SittingManager(models.Manager):
 
     def new_sitting(self, user, quiz):
         if quiz.random_order is True:
-            question_set = quiz.question_set.all().select_subclasses().order_by('?')
+            question_set = quiz.questions.all().select_subclasses().order_by('?')
         else:
-            question_set = quiz.question_set.all().select_subclasses()
+            question_set = quiz.questions.all().select_subclasses()
 
         question_set = [item.id for item in question_set]
 
@@ -127,13 +207,14 @@ class SittingManager(models.Manager):
                                   question_list=questions,
                                   incorrect_questions="",
                                   current_score=0,
+                                  start=now(),
                                   complete=False,
                                   user_answers='{}')
         return new_sitting
 
     def user_sitting(self, user, quiz):
         if quiz.single_attempt and self.filter(user=user, quiz=quiz, complete=True).exists():
-            return False
+            return None
 
         try:
             sitting = self.get(user=user, quiz=quiz, complete=False)
@@ -147,7 +228,6 @@ class SittingManager(models.Manager):
 class Sitting(models.Model):
     """
     Used to store the progress of logged in users sitting a quiz.
-    Replaces the session system used by anon users.
     Sitting deleted when quiz finished unless quiz.exam_paper is true.
     """
 
@@ -226,7 +306,7 @@ class Sitting(models.Model):
     def score(self):
         return self.current_score
 
-    def _question_ids(self):
+    def questions_id(self):
         return [int(n) for n in self.question_order.split(',') if n]
 
     @property
@@ -247,24 +327,10 @@ class Sitting(models.Model):
         self.end = now()
         self.save()
 
-    def add_incorrect_question(self, question):
-        """
-        Adds uid of incorrect question to the list.
-        The question object must be passed in.
-        """
-
-        if len(self.incorrect_questions) > 0:
-            self.incorrect_questions += ','
-        self.incorrect_questions += str(question.id) + ","
-        if self.complete:
-            self.add_to_score(-1)
-        self.save()
-
     @property
     def get_incorrect_questions(self):
         """
-        Returns a list of non empty integers, representing the pk of
-        questions
+        Returns a list of non empty integers, representing the pk of questions
         """
         return [int(q) for q in self.incorrect_questions.split(',') if q]
 
@@ -272,7 +338,12 @@ class Sitting(models.Model):
         current = self.get_incorrect_questions
         current.remove(question.id)
         self.incorrect_questions = ','.join(map(str, current))
-        self.add_to_score(1)
+        self.save()
+
+    def add_incorrect_question(self, question):
+        current = self.get_incorrect_questions
+        current.append(question)
+        self.incorrect_questions = ','.join(map(str, current))
         self.save()
 
     @property
@@ -289,24 +360,30 @@ class Sitting(models.Model):
         self.user_answers = json.dumps(current)
         self.save()
 
+    @property
+    def get_user_answers(self):
+        return json.loads(self.user_answers)
+
     def get_questions(self, with_answers=False):
-        question_ids = self._question_ids()
+        question_ids = self.questions_id()
         questions = sorted(
-            self.quiz.question_set.filter(id__in=question_ids).select_subclasses(),
+            self.quiz.questions.filter(id__in=question_ids).select_subclasses(),
             key=lambda q: question_ids.index(q.id))
 
-        if with_answers:
-            user_answers = json.loads(self.user_answers)
-            for question in questions:
-                question.user_answer = user_answers[str(question.id)]
+        obj = []
+        for question in questions:
+            obj.append({
+                question: {
+                    'id': question.id,
+                    'category': question.category,
+                    'content': question.content,
+                    'explanation': question.explanation,
+                    'max_time': question.max_time,
+                    'answers': question.get_answers() if with_answers else []
+                }
+            })
 
-        return questions
-
-    @property
-    def questions_with_user_answers(self):
-        return {
-            q: q.user_answer for q in self.get_questions(with_answers=True)
-        }
+        return obj
 
     @property
     def max_score(self):
@@ -319,69 +396,3 @@ class Sitting(models.Model):
         answered = len(json.loads(self.user_answers))
         total = self.max_score
         return answered, total
-
-
-class CategoryManager(models.Manager):
-
-    def new_category(self, category):
-        new_category = self.create(category=re.sub('\s+', '-', category).lower())
-        new_category.save()
-        return new_category
-
-
-class Category(models.Model):
-
-    category = models.CharField(verbose_name=_("Category"),
-                                max_length=250,
-                                blank=True,
-                                unique=True,
-                                null=True)
-
-    objects = CategoryManager()
-
-    class Meta:
-        verbose_name = _("Category")
-        verbose_name_plural = _("Categories")
-
-    def __str__(self):
-        return self.category
-
-
-class Question(models.Model):
-    """
-    Base class for all question types.
-    Shared properties placed here.
-    """
-
-    quiz = models.ManyToManyField(Quiz,
-                                  verbose_name=_("Quiz"),
-                                  blank=True)
-
-    category = models.ForeignKey(Category,
-                                 verbose_name=_("Category"),
-                                 blank=True,
-                                 null=True,
-                                 on_delete=models.CASCADE)
-
-    content = models.CharField(max_length=1000,
-                               blank=False,
-                               help_text=_("Enter the question text that you want displayed"),
-                               verbose_name=_('Question'))
-
-    explanation = models.TextField(max_length=2000,
-                                   blank=True,
-                                   help_text=_("Explanation to be shown after the question has been answered."),
-                                   verbose_name=_('Explanation'))
-
-    max_time = models.DurationField(verbose_name=_('Time limit'),
-                                    help_text=_("Time limit to answer the question"))
-
-    objects = InheritanceManager()
-
-    class Meta:
-        verbose_name = _("Question")
-        verbose_name_plural = _("Questions")
-        ordering = ['category']
-
-    def __str__(self):
-        return self.content

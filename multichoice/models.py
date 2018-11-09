@@ -1,6 +1,6 @@
 from django.utils.translation import ugettext as _
 from django.db import models
-from quiz.models import Question
+from ..quiz.models import Question
 
 
 ANSWER_ORDER_CHOICES = (
@@ -16,12 +16,12 @@ class MCQuestion(Question):
                                     null=True,
                                     blank=True,
                                     choices=ANSWER_ORDER_CHOICES,
-                                    help_text=_("The order in which multichoice answer options are displayed "
+                                    help_text=_("The order in which multiple choice answer options are displayed "
                                                 "to the user"),
                                     verbose_name=_("Answer Order"))
 
     def check_if_correct(self, guess):
-        answer = Answer.objects.get(id=guess)
+        answer = self.answers.get(id=guess)
         return answer.correct is True
 
     def order_answers(self, queryset):
@@ -34,14 +34,19 @@ class MCQuestion(Question):
         return queryset
 
     def get_answers(self):
-        return self.order_answers(Answer.objects.filter(question=self))
+        answers = []
 
-    def get_answers_list(self):
-        return [(answer.id, answer.content) for answer in
-                self.order_answers(Answer.objects.filter(question=self))]
+        for a in self.order_answers(self.answers):
+            answers.append({
+                'id': a.id,
+                'correct': a.correct,
+                'content': a.content
+            })
+
+        return answers
 
     def answer_choice_to_string(self, guess):
-        return Answer.objects.get(id=guess).content
+        return self.answers.get(id=guess).content
 
     class Meta:
         verbose_name = _("Multiple Choice Question")
@@ -49,11 +54,13 @@ class MCQuestion(Question):
 
 
 class Answer(models.Model):
+
     question = models.ForeignKey(MCQuestion,
                                  verbose_name=_("Question"),
+                                 related_name='answers',
                                  on_delete=models.CASCADE)
 
-    content = models.CharField(max_length=1000,
+    content = models.CharField(max_length=500,
                                blank=False,
                                help_text=_("Enter the answer text that you want displayed"),
                                verbose_name=_("Content"))

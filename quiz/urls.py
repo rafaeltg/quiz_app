@@ -1,22 +1,25 @@
-from django.urls import re_path, include
 from django.conf.urls import url
 from .views import *
 
 
 urlpatterns = [
+    url(regex='',
+        view=QuizList.as_view(),
+        name='quiz-list'),
 
-    #  passes variable 'quiz_name' to next views
-    url(regex=r'^(?P<slug>[\w-]+)/$',
-        view=QuizDetailView.as_view(),
-        name='quiz_start_page'),
+    url(regex=r'<int:pk>/$',
+        view=QuizDetail.as_view(),
+        name='quiz-detail'),
 
-    re_path(r'^(?P<quiz_name>[\w-]+)', include('customuser.urls')),
+    url(regex=r'<int:pk>/ranking/$',
+        view=QuizRanking.as_view(),
+        name='quiz-ranking'),
 
-    url(regex=r'^(?P<quiz_name>[\w-]+)/take/$',
-        view=QuizTake.as_view(),
-        name='quiz_question'),
+    url(regex=r'<int:pk>/questions/$',
+        view=QuizQuestions.as_view(),
+        name='quiz-questions'),
 
-    url(regex=r'^(?P<quiz_name>[\w-]+)/ranking/$',
-        view=QuizRankingView.as_view(),
-        name='quiz_ranking')
+    url(regex=r'<int:pk>/taking/$',
+        view=QuizTaking.as_view(),
+        name='quiz-taking')
 ]

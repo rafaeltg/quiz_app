@@ -2,4 +2,7 @@ Django
 django-extensions
 django-model-utils
 django-localflavor
+djangorestframework
+django-rest-auth
+coreapi
 psycopg2
