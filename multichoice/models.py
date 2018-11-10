@@ -1,6 +1,6 @@
 from django.utils.translation import ugettext as _
 from django.db import models
-from ..quiz.models import Question
+from quiz.models import Question
 
 
 ANSWER_ORDER_CHOICES = (

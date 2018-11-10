@@ -1,12 +1,11 @@
 import re
 import json
-
 from django.db import models
 from django.core.exceptions import ValidationError, ImproperlyConfigured
 from django.core.validators import MaxValueValidator, validate_comma_separated_integer_list
+from django.conf import settings
 from django.utils.translation import ugettext as _
 from django.utils.timezone import now
-from django.conf import settings
 from model_utils.managers import InheritanceManager
 
 
@@ -14,12 +13,13 @@ class QuizManager(models.Manager):
 
     def __init__(self, *args, **kwargs):
         self.no_drafts = kwargs.pop('no_drafts', True)
-        super(QuizManager, self).__init__(*args, **kwargs)
+        super(QuizManager, self).__init__()
 
     def get_queryset(self):
+        queryset = super(QuizManager, self).get_queryset()
         if self.no_drafts:
-            return QuizManager(self.model).filter(draft=False)
-        return QuizManager(self.model)
+            return queryset.filter(draft=False)
+        return queryset
 
 
 class Quiz(models.Model):

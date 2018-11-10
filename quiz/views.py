@@ -1,8 +1,5 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import generics
-from rest_framework.response import Response
-from rest_framework.status import HTTP_200_OK
-
 from .exceptions import NotAllowedToTakeQuiz
 from .models import Quiz, Sitting, Question
 from .serializers import QuizSerializer, QuizRankingSerializer, QuestionsSerializer, QuizAnswersSerializer

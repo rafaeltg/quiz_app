@@ -87,11 +87,13 @@ WSGI_APPLICATION = 'quizapp.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',
-        'USER': 'postgres',
-        'HOST': 'db',
-        'PORT': 5432,
+        'ENGINE': os.environ.get("DATABASE_ENGINE"),
+        'NAME': os.environ.get("DATABASE_NAME"),
+        'USER': os.environ.get("DATABASE_USER"),
+        'PASSWORD': os.environ.get("DATABASE_PASSWORD"),
+        'HOST': os.environ.get("DATABASE_HOST"),
+        'PORT': int(os.environ.get("DATABASE_PORT")),
+        'ATOMIC_REQUESTS': True
     }
 }
 
@@ -119,8 +121,8 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LOCALE_PATHS = [
     os.path.join(BASE_DIR, 'multichoice/locale/'),
-    os.path.join(BASE_DIR, 'quiz/locale/'),
     os.path.join(BASE_DIR, 'true_false/locale/'),
+    os.path.join(BASE_DIR, 'quiz/locale/'),
     os.path.join(BASE_DIR, 'customuser/locale/')
 ]
 
