@@ -55,9 +55,6 @@ class AnswerSerializer(serializers.Serializer):
 
 class QuestionSerializer(serializers.ModelSerializer):
 
-    content = serializers.CharField(max_length=1000)
-    explanation = serializers.CharField(max_length=2000)
-    max_time = serializers.IntegerField()
     answers = AnswerSerializer(many=True)
 
     class Meta:
@@ -70,11 +67,6 @@ class QuestionSerializer(serializers.ModelSerializer):
             'max_time',
             'answers'
         )
-
-
-class QuestionsSerializer(serializers.ListSerializer):
-    child = QuestionSerializer
-    many = True
 
 
 class QuestionTakingSerializer(serializers.Serializer):

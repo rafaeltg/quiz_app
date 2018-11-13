@@ -373,16 +373,15 @@ class Sitting(models.Model):
 
         obj = []
         for question in questions:
-            obj.append({
-                question: {
+            obj.append(
+                {
                     'id': question.id,
                     'category': question.category,
                     'content': question.content,
                     'explanation': question.explanation,
                     'max_time': question.max_time,
                     'answers': question.get_answers() if with_answers else []
-                }
-            })
+                })
 
         return obj
 

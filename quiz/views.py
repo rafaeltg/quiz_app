@@ -1,8 +1,9 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import generics
+from rest_framework.permissions import IsAuthenticated
 from .exceptions import NotAllowedToTakeQuiz
 from .models import Quiz, Sitting, Question
-from .serializers import QuizSerializer, QuizRankingSerializer, QuestionsSerializer, QuizAnswersSerializer
+from .serializers import QuizSerializer, QuizRankingSerializer, QuestionSerializer, QuizAnswersSerializer
 
 
 class QuizList(generics.ListCreateAPIView):
@@ -11,7 +12,9 @@ class QuizList(generics.ListCreateAPIView):
 
 
 class QuizDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Quiz.objects.all()
     serializer_class = QuizSerializer
+    permission_classes = (IsAuthenticated,)
 
 
 class QuizRanking(generics.ListAPIView):
@@ -31,10 +34,11 @@ class QuizRanking(generics.ListAPIView):
 
 
 class QuizSitting(generics.GenericAPIView):
+    permission_classes = (IsAuthenticated,)
 
     def get_object(self):
         quiz = get_object_or_404(Quiz, id=self.kwargs['pk'])
-        logged_in_user = self.request.user.is_authenticated()
+        logged_in_user = self.request.user.is_authenticated
 
         s = Sitting.objects.user_sitting(self.request.user, quiz) if logged_in_user else None
         if s is None:
@@ -44,7 +48,7 @@ class QuizSitting(generics.GenericAPIView):
 
 
 class QuizQuestions(QuizSitting, generics.ListAPIView):
-    serializer_class = QuestionsSerializer
+    serializer_class = QuestionSerializer
 
     def get_queryset(self):
         sitting = self.get_object()
