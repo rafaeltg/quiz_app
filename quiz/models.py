@@ -170,6 +170,7 @@ class Question(models.Model):
                                    verbose_name=_('Explanation'))
 
     max_time = models.IntegerField(verbose_name=_('Time limit'),
+                                   default=60,
                                    help_text=_("Time limit to answer the question in seconds."))
 
     objects = InheritanceManager()

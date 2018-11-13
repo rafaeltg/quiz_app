@@ -1,7 +1,6 @@
 from django.contrib.auth import authenticate
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers, exceptions
-from rest_framework.authtoken.models import Token
 from rest_framework.validators import UniqueValidator
 from .models import User
 
@@ -12,12 +11,8 @@ class UserSerializer(serializers.ModelSerializer):
         required=True,
         validators=[UniqueValidator(queryset=User.objects.all())])
 
-    cpf = serializers.CharField(
-        max_length=14,
-        required=True)
-
     password = serializers.CharField(
-        min_length=128,
+        max_length=128,
         write_only=True)
 
     class Meta:
@@ -27,18 +22,25 @@ class UserSerializer(serializers.ModelSerializer):
             'first_name',
             'last_name',
             'email',
-            'cpf',
             'phone',
-            'sex',
             'birth_date',
             'password')
         read_only_fields = ('email', 'cpf',)
 
+    def create(self, validated_data):
+        return User.objects.create_user(**validated_data)
+
 
 class LoginSerializer(serializers.Serializer):
 
-    email = serializers.EmailField(required=False, allow_blank=True)
-    password = serializers.CharField(style={'input_type': 'password'})
+    email = serializers.EmailField(required=True)
+    password = serializers.CharField(required=True, style={'input_type': 'password'})
+
+    class Meta:
+        fields = (
+            'email',
+            'password'
+        )
 
     def _validate_email(self, email, password):
         user = None
@@ -66,11 +68,13 @@ class LoginSerializer(serializers.Serializer):
         return attrs
 
 
-class TokenSerializer(serializers.ModelSerializer):
-    """
-    Serializer for Token model.
-    """
+class TokenSerializer(serializers.Serializer):
+
+    user = serializers.IntegerField()
+    token = serializers.CharField(max_length=40)
 
     class Meta:
-        model = Token
-        fields = ('key',)
+        fields = (
+            'user',
+            'token'
+        )

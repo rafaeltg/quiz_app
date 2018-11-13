@@ -6,23 +6,14 @@ services:
     restart: always
     environment:
       - POSTGRES_DB=quizapp
-      - POSTGRES_USER=quizapp
-      - POSTGRES_PASSWORD=quizapp123
-    networks:
-      - backend_db
+      - POSTGRES_USER=quizappuser
+      - POSTGRES_PASSWORD=123456789
 
   web:
     build: .
-    environment:
-      - PYTHONDONTWRITEBYTECODE=1
-      - PYTHONUNBUFFERED=1
-      - DJANGO_SETTINGS_MODULE=quizapp.settings
-      - DATABASE_ENGINE=django.db.backends.postgresql
-      - DATABASE_NAME=quizapp
-      - DATABASE_USER=quizapp
-      - DATABASE_PASSWORD=quizapp123
-      - DATABASE_HOST=db
-      - DATABASE_PORT=5432
+    restart: always
+    env_file:
+      - .env.local
     command: bash -c "python3 manage.py makemigrations; python3 manage.py migrate --noinput; python3 manage.py runserver 0.0.0.0:8000"
     volumes:
       - .:/code
@@ -32,11 +23,3 @@ services:
       - db
     depends_on:
       - db
-    networks:
-      - backend_db
-      - external_network
-
-networks:
-  backend_db:
-  external_network:
-    external: true

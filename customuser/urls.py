@@ -4,11 +4,11 @@ from .views import UserDetailView, LoginView, SignUpView
 
 
 urlpatterns = [
-    path('login/',
+    path('login',
          LoginView.as_view(),
          name='user-login'),
 
-    path('signup/',
+    path('signup',
          SignUpView.as_view(),
          name='user-signup'),
 
