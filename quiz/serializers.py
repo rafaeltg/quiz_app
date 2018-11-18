@@ -79,8 +79,3 @@ class QuestionTakingSerializer(serializers.Serializer):
             'question',
             'answer',
         )
-
-
-class QuizAnswersSerializer(serializers.ListSerializer):
-    child = QuestionTakingSerializer
-    many = True

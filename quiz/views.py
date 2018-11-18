@@ -1,9 +1,11 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.status import HTTP_201_CREATED
 from .exceptions import NotAllowedToTakeQuiz
 from .models import Quiz, Sitting, Question
-from .serializers import QuizSerializer, QuizRankingSerializer, QuestionSerializer, QuizAnswersSerializer
+from .serializers import QuizSerializer, QuizRankingSerializer, QuestionSerializer, QuestionTakingSerializer
 
 
 class QuizList(generics.ListCreateAPIView):
@@ -22,15 +24,7 @@ class QuizRanking(generics.ListAPIView):
 
     def get_queryset(self):
         quiz = get_object_or_404(Quiz, id=self.kwargs['pk'])
-
-        sittings = Sitting.objects.filter(
-            quiz=quiz,
-            complete=True).order_by('-current_score')
-
-        if sittings.count() > quiz.ranking_size:
-            sittings = sittings[:quiz.ranking_size]
-
-        return sittings
+        return quiz.get_ranking()
 
 
 class QuizSitting(generics.GenericAPIView):
@@ -56,9 +50,15 @@ class QuizQuestions(QuizSitting, generics.ListAPIView):
 
 
 class QuizTaking(QuizSitting, generics.CreateAPIView):
-    serializer_class = QuizAnswersSerializer
+    serializer_class = QuestionTakingSerializer
 
-    def perform_create(self, serializer):
+    def get_serializer(self, instance=None, data=None, many=False, partial=False):
+        return super(QuizTaking, self).get_serializer(instance=instance, data=data, many=True, partial=partial)
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
         sitting = self.get_object()
 
         for answer in serializer.data:
@@ -75,9 +75,15 @@ class QuizTaking(QuizSitting, generics.CreateAPIView):
             else:
                 sitting.add_incorrect_question(q_id)
 
+        data = serializer.data
+
         if len(sitting.get_user_answers) == len(sitting.questions_id()):
             sitting.mark_quiz_complete()
-
-            serializer.data = {
-                'score': sitting.score
+            data = {
+                'score': sitting.score,
+                'success_text': sitting.quiz.success_text,
+                'fail_text': sitting.quiz.fail_text,
             }
+
+        headers = self.get_success_headers(serializer.data)
+        return Response(data, status=HTTP_201_CREATED, headers=headers)

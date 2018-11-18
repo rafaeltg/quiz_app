@@ -25,13 +25,13 @@ class MCQuestion(Question):
         return answer.correct is True
 
     def order_answers(self, queryset):
+        if self.answer_order is None:
+            return queryset.all()
         if self.answer_order == 'content':
-            return queryset.order_by('content')
+            return queryset.order_by('content').all()
         if self.answer_order == 'random':
-            return queryset.order_by('?')
-        if self.answer_order == 'none':
-            return queryset.order_by()
-        return queryset
+            return queryset.order_by('?').all()
+        return queryset.all()
 
     def get_answers(self):
         answers = []

@@ -116,6 +116,15 @@ class Quiz(models.Model):
     def get_max_score(self):
         return self.get_questions().count()
 
+    def get_ranking(self):
+        sittings = Sitting.objects.filter(
+            quiz=self,
+            complete=True).order_by('-current_score')
+
+        if sittings.count() > self.ranking_size:
+            sittings = sittings[:self.ranking_size]
+
+        return sittings
 
 class CategoryManager(models.Manager):
 
@@ -355,9 +364,9 @@ class Sitting(models.Model):
     def result_message(self):
         return self.quiz.success_text if self.check_if_passed else self.quiz.fail_text
 
-    def add_user_answer(self, question, guess):
+    def add_user_answer(self, question_id, guess):
         current = json.loads(self.user_answers)
-        current[question.id] = guess
+        current[question_id] = guess
         self.user_answers = json.dumps(current)
         self.save()
 
