@@ -6,3 +6,4 @@ djangorestframework
 django-rest-auth
 coreapi
 psycopg2
+django-cors-headers

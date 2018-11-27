@@ -45,9 +45,11 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'rest_auth',
+    'corsheaders'
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -59,6 +61,7 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'quizapp.urls'
 
+'''
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -78,6 +81,7 @@ TEMPLATES = [
         },
     },
 ]
+'''
 
 WSGI_APPLICATION = 'quizapp.wsgi.application'
 
@@ -155,3 +159,6 @@ REST_FRAMEWORK = {
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
+
+
+CORS_ORIGIN_ALLOW_ALL = True
