@@ -61,7 +61,6 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'quizapp.urls'
 
-'''
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -81,7 +80,7 @@ TEMPLATES = [
         },
     },
 ]
-'''
+
 
 WSGI_APPLICATION = 'quizapp.wsgi.application'
 
