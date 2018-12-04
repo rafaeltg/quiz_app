@@ -1,6 +1,5 @@
 from django.urls import reverse
 from customuser.models import User
-from rest_framework.test import APIRequestFactory
 from rest_framework.test import APITestCase
 from rest_framework.authtoken.models import Token
 from rest_framework import status

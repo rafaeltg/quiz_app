@@ -66,8 +66,8 @@ TEMPLATES = [
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
             os.path.join(BASE_DIR, 'templates'),
-            os.path.join(BASE_DIR, 'quiz/templates'),
-            os.path.join(BASE_DIR, 'customuser/templates')
+            os.path.join(BASE_DIR, 'quiz_app/quiz/templates'),
+            os.path.join(BASE_DIR, 'quiz_app/customuser/templates')
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -123,10 +123,10 @@ AUTH_PASSWORD_VALIDATORS = [
 
 
 LOCALE_PATHS = [
-    os.path.join(BASE_DIR, 'multichoice/locale/'),
+    os.path.join(BASE_DIR, 'quiz_app/multichoice/locale/'),
     os.path.join(BASE_DIR, 'true_false/locale/'),
-    os.path.join(BASE_DIR, 'quiz/locale/'),
-    os.path.join(BASE_DIR, 'customuser/locale/')
+    os.path.join(BASE_DIR, 'quiz_app/quiz/../quiz/locale/'),
+    os.path.join(BASE_DIR, 'quiz_app/customuser/locale/')
 ]
 
 # Internationalization
