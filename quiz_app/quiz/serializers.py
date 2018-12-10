@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Quiz, Sitting, Question
+from customuser.models import User
 
 
 class QuizSerializer(serializers.ModelSerializer):
@@ -28,8 +29,20 @@ class QuizSerializer(serializers.ModelSerializer):
         )
 
 
+class UserSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = (
+            'id',
+            'full_name'
+        )
+
+
 class QuizRankingSerializer(serializers.ModelSerializer):
     readonly_fields = 'pk'
+
+    user = UserSerializer()
 
     class Meta:
         model = Sitting
@@ -54,7 +67,6 @@ class AnswerSerializer(serializers.Serializer):
 
 
 class QuestionSerializer(serializers.ModelSerializer):
-
     answers = AnswerSerializer(many=True)
 
     class Meta:
@@ -70,7 +82,6 @@ class QuestionSerializer(serializers.ModelSerializer):
 
 
 class QuestionTakingSerializer(serializers.Serializer):
-
     question = serializers.IntegerField()
     answer = serializers.IntegerField()
 

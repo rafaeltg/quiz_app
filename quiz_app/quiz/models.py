@@ -126,6 +126,7 @@ class Quiz(models.Model):
 
         return sittings
 
+
 class CategoryManager(models.Manager):
 
     def new_category(self, category):
