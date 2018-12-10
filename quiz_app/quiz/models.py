@@ -119,7 +119,7 @@ class Quiz(models.Model):
     def get_ranking(self):
         sittings = Sitting.objects.filter(
             quiz=self,
-            complete=True).order_by('-current_score')
+            complete=True).order_by('-current_score').distinct('user')
 
         if sittings.count() > self.ranking_size:
             sittings = sittings[:self.ranking_size]
