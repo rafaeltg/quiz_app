@@ -8,10 +8,11 @@ from .models import User
 class UserSerializer(serializers.ModelSerializer):
 
     email = serializers.EmailField(
-        required=True,
+        required=False,
         validators=[UniqueValidator(queryset=User.objects.all())])
 
     password = serializers.CharField(
+        required=False,
         max_length=128,
         write_only=True)
 
