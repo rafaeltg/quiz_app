@@ -7,14 +7,15 @@ from .models import User
 
 class UserSerializer(serializers.ModelSerializer):
 
-    email = serializers.EmailField(
-        required=False,
-        validators=[UniqueValidator(queryset=User.objects.all())])
-
     password = serializers.CharField(
         required=False,
         max_length=128,
         write_only=True)
+
+    cpf = serializers.CharField(
+        required=True,
+        max_length=24,
+        validators=[UniqueValidator(queryset=User.objects.all())])
 
     class Meta:
         model = User
@@ -23,6 +24,7 @@ class UserSerializer(serializers.ModelSerializer):
             'first_name',
             'last_name',
             'email',
+            'cpf',
             'phone',
             'birth_date',
             'password')
@@ -34,30 +36,26 @@ class UserSerializer(serializers.ModelSerializer):
 
 class LoginSerializer(serializers.Serializer):
 
-    email = serializers.EmailField(required=True)
+    cpf = serializers.CharField(required=True, max_length=14)
     password = serializers.CharField(required=True, style={'input_type': 'password'})
 
     class Meta:
         fields = (
-            'email',
+            'cpf',
             'password'
         )
 
-    def _validate_email(self, email, password):
-        user = None
+    def _validate_credentials(self, cpf, password):
+        if cpf and password:
+            return authenticate(self.context['request'], cpf=cpf, password=password)
 
-        if email and password:
-            user = authenticate(self.context['request'], email=email, password=password)
-        else:
-            raise exceptions.ValidationError(_('Must include "email" and "password".'))
-
-        return user
+        raise exceptions.ValidationError(_('Must include "cpf" and "password".'))
 
     def validate(self, attrs):
-        email = attrs.get('email')
+        cpf = attrs.get('cpf')
         password = attrs.get('password')
 
-        user = self._validate_email(email, password)
+        user = self._validate_credentials(cpf, password)
 
         if user is None:
             raise exceptions.ValidationError(_('Unable to log in with provided credentials.'))

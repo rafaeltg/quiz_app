@@ -39,7 +39,7 @@ class UserManager(BaseUserManager):
         extra_fields.setdefault('is_superuser', False)
         return self._create_user(email, password, **extra_fields)
 
-    def create_superuser(self, email, password, **extra_fields):
+    def create_superuser(self, email=None, password=None, **extra_fields):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
 
@@ -61,10 +61,11 @@ class User(AbstractBaseUser, PermissionsMixin):
                                  verbose_name=_('Last name'))
 
     email = models.EmailField(verbose_name=_('Email'),
-                              unique=True,
-                              blank=False)
+                              blank=True,
+                              null=True)
 
     cpf = models.CharField(max_length=14,
+                           unique=True,
                            null=False,
                            blank=False,
                            verbose_name=_('CPF'))
@@ -99,7 +100,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     objects = UserManager()
 
-    USERNAME_FIELD = 'email'
+    USERNAME_FIELD = 'cpf'
     REQUIRED_FIELDS = ['first_name', 'last_name']
 
     class Meta:

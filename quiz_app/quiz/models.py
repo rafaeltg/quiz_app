@@ -7,6 +7,7 @@ from django.conf import settings
 from django.utils.translation import ugettext as _
 from django.utils.timezone import now
 from model_utils.managers import InheritanceManager
+from customuser.models import User
 
 
 class QuizManager(models.Manager):
@@ -117,12 +118,13 @@ class Quiz(models.Model):
         return self.get_questions().count()
 
     def get_ranking(self):
-        sittings = Sitting.objects.filter(
-            quiz=self,
-            complete=True).order_by('-current_score')
+        sittings = Sitting.objects.filter(quiz=self, complete=True) \
+            .values('user') \
+            .annotate(best_score=models.Max('current_score')) \
+            .order_by('-best_score')[:self.ranking_size]
 
-        if sittings.count() > self.ranking_size:
-            sittings = sittings[:self.ranking_size]
+        for s in sittings:
+            s['user'] = User.objects.get(pk=s['user'])
 
         return sittings
 
