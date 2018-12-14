@@ -69,7 +69,7 @@ class LoginSerializer(serializers.Serializer):
 
 class TokenSerializer(serializers.Serializer):
 
-    user = serializers.IntegerField()
+    user = UserSerializer()
     token = serializers.CharField(max_length=40)
 
     class Meta:

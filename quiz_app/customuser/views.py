@@ -59,10 +59,7 @@ class LoginView(GenericAPIView):
         token, _ = Token.objects.get_or_create(user=user)
         django_login(request, user)
         return {
-            'user': {
-                'id': user.id,
-                'name': user.full_name
-            },
+            'user': user,
             'token': token
         }
 
