@@ -17,6 +17,10 @@ class UserSerializer(serializers.ModelSerializer):
         max_length=24,
         validators=[UniqueValidator(queryset=User.objects.all())])
 
+    email = serializers.EmailField(
+        required=False,
+        validators=[UniqueValidator(queryset=User.objects.all())])
+
     class Meta:
         model = User
         fields = (
@@ -28,7 +32,7 @@ class UserSerializer(serializers.ModelSerializer):
             'phone',
             'birth_date',
             'password')
-        read_only_fields = ('email', 'cpf',)
+        read_only_fields = ('cpf',)
 
     def create(self, validated_data):
         return User.objects.create_user(**validated_data)
