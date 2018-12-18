@@ -8,6 +8,7 @@ from django.utils.translation import ugettext as _
 from django.utils.timezone import now
 from model_utils.managers import InheritanceManager
 from customuser.models import User
+from .exceptions import MaxNumberOfAttempts
 
 
 class QuizManager(models.Manager):
@@ -60,11 +61,10 @@ class Quiz(models.Model):
                                      help_text=_("If yes, the result of each attempt by a user will be stored. "
                                                  "Necessary for marking."))
 
-    single_attempt = models.BooleanField(blank=False,
-                                         default=False,
-                                         verbose_name=_("Single Attempt"),
-                                         help_text=_("If yes, only one attempt by a user will be permitted."
-                                                     "Non users cannot sit this exam."))
+    number_attempts = models.PositiveIntegerField(blank=True,
+                                                  default=1,
+                                                  verbose_name=_("Max number of attempts"),
+                                                  help_text=_("If not set, users have no limit of attempts."))
 
     pass_mark = models.SmallIntegerField(blank=True,
                                          default=0,
@@ -95,7 +95,7 @@ class Quiz(models.Model):
     all_objects = QuizManager()
 
     def save(self, force_insert=False, force_update=False, *args, **kwargs):
-        if self.single_attempt is True:
+        if self.number_attempts == 1:
             self.exam_paper = True
 
         if self.pass_mark > 100:
@@ -226,15 +226,16 @@ class SittingManager(models.Manager):
         return new_sitting
 
     def user_sitting(self, user, quiz):
-        if quiz.single_attempt and self.filter(user=user, quiz=quiz, complete=True).exists():
-            return None
+        if quiz.number_attempts:
+            if quiz.number_attempts < self.filter(user=user, quiz=quiz, complete=True).count():
+                raise MaxNumberOfAttempts
 
         try:
             sitting = self.get(user=user, quiz=quiz, complete=False)
         except Sitting.DoesNotExist:
             sitting = self.new_sitting(user, quiz)
         except Sitting.MultipleObjectsReturned:
-            sitting = self.filter(user=user, quiz=quiz, complete=False)[0]
+            sitting = self.filter(user=user, quiz=quiz, complete=False).first()
         return sitting
 
 

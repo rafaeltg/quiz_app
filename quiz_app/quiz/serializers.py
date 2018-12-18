@@ -20,7 +20,7 @@ class QuizSerializer(serializers.ModelSerializer):
             'max_questions',
             'answers_at_end',
             'exam_paper',
-            'single_attempt',
+            'number_attempts',
             'pass_mark',
             'success_text',
             'fail_text',
