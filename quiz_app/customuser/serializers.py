@@ -19,7 +19,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     email = serializers.EmailField(
         required=False,
-        validators=[UniqueValidator(queryset=User.objects.all())])
+        validators=[UniqueValidator(queryset=User.objects.exclude(email__isnull=True).all())])
 
     class Meta:
         model = User
