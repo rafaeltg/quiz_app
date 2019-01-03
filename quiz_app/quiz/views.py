@@ -70,20 +70,39 @@ class QuizTaking(QuizSitting, generics.CreateAPIView):
             q = Question.objects.get_subclass(id=q_id)
             if q.check_if_correct(guess):
                 sitting.add_to_score(1)
-                if q_id in sitting.get_incorrect_questions:
-                    sitting.remove_incorrect_question(q_id)
+                sitting.remove_incorrect_question(q_id)
             else:
                 sitting.add_incorrect_question(q_id)
 
-        data = serializer.data
+        sitting.mark_quiz_complete()
+        data = {
+            'score': sitting.score,
+            'success_text': sitting.quiz.success_text,
+            'fail_text': sitting.quiz.fail_text
+        }
 
-        if len(sitting.get_user_answers) == len(sitting.questions_id()):
-            sitting.mark_quiz_complete()
-            data = {
-                'score': sitting.score,
-                'success_text': sitting.quiz.success_text,
-                'fail_text': sitting.quiz.fail_text,
-            }
+        return Response(
+            data=data,
+            status=HTTP_201_CREATED,
+            headers=self.get_success_headers(serializer.data))
 
-        headers = self.get_success_headers(serializer.data)
-        return Response(data, status=HTTP_201_CREATED, headers=headers)
+
+class QuizTakingExtra(QuizTaking):
+
+    def get_object(self):
+        quiz = get_object_or_404(Quiz, id=self.kwargs['pk'])
+
+        if not self.request.user.is_authenticated:
+            raise NotAllowedToTakeQuiz
+
+        user = self.request.user
+
+        try:
+            sitting = Sitting.objects.get(user=user, quiz=quiz, complete=True)
+        except Sitting.MultipleObjectsReturned:
+            sitting = Sitting.objects.filter(user=user, quiz=quiz, complete=True).order_by('-end').first()
+        except Sitting.DoesNotExist:
+            raise NotAllowedToTakeQuiz
+
+        return sitting
+

@@ -19,6 +19,10 @@ urlpatterns = [
         view=QuizTaking.as_view(),
         name='quiz-taking'),
 
+    url(regex=r'^(?P<pk>[0-9]+)/taking-extra$',
+        view=QuizTakingExtra.as_view(),
+        name='quiz-taking-extra'),
+
     url(regex='^$',
         view=QuizList.as_view(),
         name='quiz-list')

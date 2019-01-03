@@ -235,7 +235,7 @@ class SittingManager(models.Manager):
         except Sitting.DoesNotExist:
             sitting = self.new_sitting(user, quiz)
         except Sitting.MultipleObjectsReturned:
-            sitting = self.filter(user=user, quiz=quiz, complete=False).first()
+            sitting = self.filter(user=user, quiz=quiz, complete=False).order_by('-start').first()
         return sitting
 
 
@@ -348,17 +348,21 @@ class Sitting(models.Model):
         """
         return [int(q) for q in self.incorrect_questions.split(',') if q]
 
-    def remove_incorrect_question(self, question):
+    def remove_incorrect_question(self, question_id):
         current = self.get_incorrect_questions
-        current.remove(question.id)
-        self.incorrect_questions = ','.join(map(str, current))
-        self.save()
 
-    def add_incorrect_question(self, question):
+        if question_id in current:
+            current.remove(question_id)
+            self.incorrect_questions = ','.join(map(str, current))
+            self.save()
+
+    def add_incorrect_question(self, question_id):
         current = self.get_incorrect_questions
-        current.append(question)
-        self.incorrect_questions = ','.join(map(str, current))
-        self.save()
+
+        if question_id not in current:
+            current.append(question_id)
+            self.incorrect_questions = ','.join(map(str, current))
+            self.save()
 
     @property
     def check_if_passed(self):
