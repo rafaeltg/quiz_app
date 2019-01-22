@@ -318,7 +318,13 @@ class Sitting(models.Model):
 
     @property
     def score(self):
-        return self.current_score
+        max_time = 60 * len(self.questions_id())
+        elapsed_time = (self.end - self.start).seconds
+
+        if elapsed_time >= max_time:
+            return round(self.percent_correct * 0.01, 2)
+
+        return round(self.percent_correct * ((max_time - elapsed_time) / max_time), 2)
 
     def questions_id(self):
         return [int(n) for n in self.question_order.split(',') if n]
@@ -326,15 +332,15 @@ class Sitting(models.Model):
     @property
     def percent_correct(self):
         dividend = float(self.current_score)
-        divisor = len(self._question_ids())
+        divisor = len(self.questions_id())
+
         if divisor < 1:
-            return 0
+            return 0.0
 
         if dividend > divisor:
-            return 100
+            return 1.0
 
-        correct = int(round((dividend / divisor) * 100))
-        return correct if correct >= 1 else 0
+        return round((dividend / divisor) * 100.0, 2)
 
     def mark_quiz_complete(self):
         self.complete = True

@@ -1,5 +1,13 @@
 from django.contrib import admin
-from .models import Answer, MCQuestion
+from .models import TFQuestion, MCQuestion, Answer
+
+
+class TFQuestionAdmin(admin.ModelAdmin):
+    list_display = ('content', 'category', )
+    list_filter = ('category',)
+    fields = ('content', 'category', 'quiz', 'explanation', 'correct', 'max_time')
+    search_fields = ('content', 'explanation')
+    filter_horizontal = ('quiz',)
 
 
 class AnswerInline(admin.TabularInline):
@@ -17,3 +25,4 @@ class MCQuestionAdmin(admin.ModelAdmin):
 
 
 admin.site.register(MCQuestion, MCQuestionAdmin)
+admin.site.register(TFQuestion, TFQuestionAdmin)

@@ -33,8 +33,7 @@ ALLOWED_HOSTS = [os.environ.get('HOST')]
 INSTALLED_APPS = [
     'customuser',
     'quiz',
-    'multichoice',
-    'true_false',
+    'question',
     'localflavor',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -123,9 +122,8 @@ AUTH_PASSWORD_VALIDATORS = [
 
 
 LOCALE_PATHS = [
-    os.path.join(BASE_DIR, 'quiz_app/multichoice/locale/'),
-    os.path.join(BASE_DIR, 'true_false/locale/'),
-    os.path.join(BASE_DIR, 'quiz_app/quiz/../quiz/locale/'),
+    os.path.join(BASE_DIR, 'quiz_app/question/locale/'),
+    os.path.join(BASE_DIR, 'quiz_app/quiz/locale/'),
     os.path.join(BASE_DIR, 'quiz_app/customuser/locale/')
 ]
 
