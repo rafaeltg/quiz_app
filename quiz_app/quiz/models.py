@@ -410,7 +410,7 @@ class Sitting(models.Model):
 
     @property
     def max_score(self):
-        return len(self._question_ids())
+        return len(self.questions_id())
 
     def progress(self):
         """

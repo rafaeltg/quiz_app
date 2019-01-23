@@ -105,4 +105,3 @@ class QuizTakingExtra(QuizTaking):
             raise NotAllowedToTakeQuiz
 
         return sitting
-
