@@ -69,7 +69,6 @@ class QuizTaking(QuizSitting, generics.CreateAPIView):
 
             q = Question.objects.get_subclass(id=q_id)
             if q.check_if_correct(guess):
-                sitting.add_to_score(1)
                 sitting.remove_incorrect_question(q_id)
             else:
                 sitting.add_incorrect_question(q_id)

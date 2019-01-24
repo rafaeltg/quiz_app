@@ -69,7 +69,7 @@ class Quiz(models.Model):
     pass_mark = models.SmallIntegerField(blank=True,
                                          default=0,
                                          verbose_name=_("Pass Mark"),
-                                         help_text=_("Percentage required to pass exam."),
+                                         help_text=_("Percentage required to pass exam. 0% to 100%."),
                                          validators=[MaxValueValidator(100)])
 
     success_text = models.TextField(blank=True,
@@ -111,7 +111,7 @@ class Quiz(models.Model):
         return self.title
 
     def get_questions(self):
-        return self.question_set.all().select_subclasses()
+        return self.questions.all().select_subclasses()
 
     @property
     def get_max_score(self):
@@ -120,7 +120,7 @@ class Quiz(models.Model):
     def get_ranking(self):
         sittings = Sitting.objects.filter(quiz=self, complete=True) \
             .values('user') \
-            .annotate(best_score=models.Max('current_score')) \
+            .annotate(best_score=models.Max('score')) \
             .order_by('-best_score')[:self.ranking_size]
 
         for s in sittings:
@@ -219,7 +219,7 @@ class SittingManager(models.Manager):
                                   question_order=questions,
                                   question_list=questions,
                                   incorrect_questions="",
-                                  current_score=0,
+                                  score=0,
                                   start=now(),
                                   complete=False,
                                   user_answers='{}')
@@ -268,7 +268,9 @@ class Sitting(models.Model):
                                            verbose_name=_("Incorrect questions"),
                                            validators=[validate_comma_separated_integer_list])
 
-    current_score = models.IntegerField(verbose_name=_("Current Score"))
+    score = models.DecimalField(verbose_name=_("Score"),
+                                decimal_places=2,
+                                max_digits=6)
 
     complete = models.BooleanField(default=False,
                                    blank=False,
@@ -312,42 +314,37 @@ class Sitting(models.Model):
         self.question_list = others
         self.save()
 
-    def add_to_score(self, points):
-        self.current_score += int(points)
-        self.save()
-
-    @property
-    def score(self):
+    def calculate_score(self):
         max_time = 60 * len(self.questions_id())
         elapsed_time = (self.end - self.start).seconds
 
         if elapsed_time >= max_time:
-            return round(self.percent_correct * 0.01, 2)
+            self.score = round(self.percent_correct * 0.01, 2)
 
-        return round(self.percent_correct * ((max_time - elapsed_time) / max_time), 2)
+        self.score = round(self.percent_correct * ((max_time - elapsed_time) / max_time), 2)
 
     def questions_id(self):
         return [int(n) for n in self.question_order.split(',') if n]
 
     @property
     def percent_correct(self):
-        dividend = float(self.current_score)
-        divisor = len(self.questions_id())
+        total = len(self.questions_id())
+        corrects = total - len(self.get_incorrect_questions())
 
-        if divisor < 1:
+        if total < 1:
             return 0.0
 
-        if dividend > divisor:
+        if corrects > total:
             return 1.0
 
-        return round((dividend / divisor) * 100.0, 2)
+        return round((corrects / total) * 100.0, 2)
 
     def mark_quiz_complete(self):
         self.complete = True
         self.end = now()
+        self.calculate_score()
         self.save()
 
-    @property
     def get_incorrect_questions(self):
         """
         Returns a list of non empty integers, representing the pk of questions
@@ -355,7 +352,7 @@ class Sitting(models.Model):
         return [int(q) for q in self.incorrect_questions.split(',') if q]
 
     def remove_incorrect_question(self, question_id):
-        current = self.get_incorrect_questions
+        current = self.get_incorrect_questions()
 
         if question_id in current:
             current.remove(question_id)
@@ -363,7 +360,7 @@ class Sitting(models.Model):
             self.save()
 
     def add_incorrect_question(self, question_id):
-        current = self.get_incorrect_questions
+        current = self.get_incorrect_questions()
 
         if question_id not in current:
             current.append(question_id)
