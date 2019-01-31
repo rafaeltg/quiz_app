@@ -225,10 +225,12 @@ class SittingManager(models.Manager):
                                   question_order=questions,
                                   question_list=questions,
                                   incorrect_questions="",
+                                  incorrect_extra_questions="",
                                   score=0,
                                   start=now(),
                                   complete=False,
-                                  user_answers='{}')
+                                  user_answers='{}',
+                                  user_extra_answers='{}')
         return new_sitting
 
     def user_sitting(self, user, quiz):
@@ -275,12 +277,13 @@ class Sitting(models.Model):
                                            validators=[validate_comma_separated_integer_list])
 
     extra_questions_list = models.CharField(max_length=1024,
+                                            blank=True,
                                             verbose_name=_("Extra Question List"),
                                             validators=[validate_comma_separated_integer_list])
 
     incorrect_extra_questions = models.CharField(max_length=1024,
                                                  blank=True,
-                                                 verbose_name=_("Incorrect questions"),
+                                                 verbose_name=_("Incorrect extra questions"),
                                                  validators=[validate_comma_separated_integer_list])
 
     score = models.DecimalField(verbose_name=_("Score"),
