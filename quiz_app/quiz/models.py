@@ -1,5 +1,6 @@
 import re
 import json
+import decimal
 from django.db import models
 from django.core.exceptions import ValidationError, ImproperlyConfigured
 from django.core.validators import MaxValueValidator, validate_comma_separated_integer_list
@@ -336,7 +337,7 @@ class Sitting(models.Model):
         self.score = round(score * 100.0, 2)
 
     def calculate_score_extra(self):
-        self.score += self.quiz.extra_question_value * self.percent_correct_extra
+        self.score += self.quiz.extra_question_value * decimal.Decimal(self.percent_correct_extra)
         self.save()
 
     @property
