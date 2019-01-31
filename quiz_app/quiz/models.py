@@ -337,7 +337,8 @@ class Sitting(models.Model):
         self.score = round(score * 100.0, 2)
 
     def calculate_score_extra(self):
-        self.score += self.quiz.extra_question_value * decimal.Decimal(self.percent_correct_extra)
+        extra_score = self.quiz.extra_question_value * decimal.Decimal(self.percent_correct_extra)
+        self.score = round(self.score + extra_score, 2)
         self.save()
 
     @property

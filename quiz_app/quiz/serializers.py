@@ -26,13 +26,14 @@ class QuizSerializer(serializers.ModelSerializer):
             'fail_text',
             'ranking_size',
             'draft',
+            'extra_question_value'
         )
 
 
 class QuizRankingSerializer(serializers.ModelSerializer):
 
     user = UserSerializer()
-    best_score = serializers.FloatField()
+    best_score = serializers.DecimalField(decimal_places=2, max_digits=5)
 
     class Meta:
         model = Sitting
