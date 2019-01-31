@@ -104,3 +104,33 @@ class QuizTakingExtra(QuizTaking):
             raise NotAllowedToTakeQuiz
 
         return sitting
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        sitting = self.get_object()
+
+        for answer in serializer.data:
+            q_id = int(answer['question'])
+            guess = int(answer['answer'])
+
+            sitting.add_user_extra_answer(q_id, guess)
+
+            q = Question.objects.get_subclass(id=q_id)
+            if q.check_if_correct(guess):
+                sitting.remove_incorrect_extra_question(q_id)
+            else:
+                sitting.add_incorrect_extra_question(q_id)
+
+        sitting.calculate_score_extra()
+        data = {
+            'score': sitting.score,
+            'success_text': sitting.quiz.success_text,
+            'fail_text': sitting.quiz.fail_text
+        }
+
+        return Response(
+            data=data,
+            status=HTTP_201_CREATED,
+            headers=self.get_success_headers(serializer.data))

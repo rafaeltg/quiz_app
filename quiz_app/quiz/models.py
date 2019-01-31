@@ -91,6 +91,12 @@ class Quiz(models.Model):
                                 help_text=_("If yes, the quiz is not displayed in the quiz list and can only be "
                                             "taken by users who can edit quizzes."))
 
+    extra_question_value = models.DecimalField(default=25.0,
+                                               max_digits=5,
+                                               decimal_places=2,
+                                               verbose_name=_("Extra Questions Value (in %)"),
+                                               help_text=_("Extra questions value in %."))
+
     objects = QuizManager(no_drafts=True)
     all_objects = QuizManager()
 
@@ -268,6 +274,15 @@ class Sitting(models.Model):
                                            verbose_name=_("Incorrect questions"),
                                            validators=[validate_comma_separated_integer_list])
 
+    extra_questions_list = models.CharField(max_length=1024,
+                                            verbose_name=_("Extra Question List"),
+                                            validators=[validate_comma_separated_integer_list])
+
+    incorrect_extra_questions = models.CharField(max_length=1024,
+                                                 blank=True,
+                                                 verbose_name=_("Incorrect questions"),
+                                                 validators=[validate_comma_separated_integer_list])
+
     score = models.DecimalField(verbose_name=_("Score"),
                                 decimal_places=2,
                                 max_digits=6)
@@ -281,6 +296,10 @@ class Sitting(models.Model):
                                     default='{}',
                                     verbose_name=_("User Answers"))
 
+    user_extra_answers = models.TextField(blank=True,
+                                          default='{}',
+                                          verbose_name=_("User Extra Answers"))
+
     start = models.DateTimeField(auto_now_add=True,
                                  verbose_name=_("Start"))
 
@@ -293,51 +312,57 @@ class Sitting(models.Model):
     class Meta:
         permissions = (("view_sittings", _("Can see completed exams.")),)
 
-    def get_first_question(self):
-        """
-        Returns the next question.
-        If no question is found, returns False
-        Does NOT remove the question from the front of the list.
-        """
-        if not self.question_list:
-            return False
-
-        first, _ = self.question_list.split(',', 1)
-        question_id = int(first)
-        return Question.objects.get_subclass(id=question_id)
-
-    def remove_first_question(self):
-        if not self.question_list:
-            return
-
-        _, others = self.question_list.split(',', 1)
-        self.question_list = others
-        self.save()
+    def questions_id(self):
+        return [int(n) for n in self.question_order.split(',') if n]
 
     def calculate_score(self):
         max_time = 60 * len(self.questions_id())
         elapsed_time = (self.end - self.start).seconds
+        t = elapsed_time / max_time
 
-        if elapsed_time >= max_time:
-            self.score = round(self.percent_correct * 0.01, 2)
+        score = self.percent_correct
 
-        self.score = round(self.percent_correct * ((max_time - elapsed_time) / max_time), 2)
+        if t > .25:
+            if t <= .5:
+                score *= .75
+            elif t <= .75:
+                score *= .5
+            else:
+                score *= .25
 
-    def questions_id(self):
-        return [int(n) for n in self.question_order.split(',') if n]
+        self.score = round(score * 100.0, 2)
+
+    def calculate_score_extra(self):
+        self.score += self.quiz.extra_question_value * self.percent_correct_extra
+        self.save()
 
     @property
-    def percent_correct(self):
-        total = len(self.questions_id())
-        corrects = total - len(self.get_incorrect_questions())
+    def percent_correct_extra(self):
+        total = len(self.get_user_extra_answers())
 
-        if total < 1:
+        if total:
             return 0.0
+
+        corrects = total - len(self.get_incorrect_extra_questions())
 
         if corrects > total:
             return 1.0
 
-        return round((corrects / total) * 100.0, 2)
+        return corrects / total
+
+    @property
+    def percent_correct(self):
+        total = len(self.questions_id())
+
+        if total == 0:
+            return 0.0
+
+        corrects = total - len(self.get_incorrect_questions())
+
+        if corrects > total:
+            return 1.0
+
+        return corrects / total
 
     def mark_quiz_complete(self):
         self.complete = True
@@ -346,9 +371,6 @@ class Sitting(models.Model):
         self.save()
 
     def get_incorrect_questions(self):
-        """
-        Returns a list of non empty integers, representing the pk of questions
-        """
         return [int(q) for q in self.incorrect_questions.split(',') if q]
 
     def remove_incorrect_question(self, question_id):
@@ -367,6 +389,25 @@ class Sitting(models.Model):
             self.incorrect_questions = ','.join(map(str, current))
             self.save()
 
+    def get_incorrect_extra_questions(self):
+        return [int(q) for q in self.incorrect_extra_questions.split(',') if q]
+
+    def remove_incorrect_extra_question(self, question_id):
+        current = self.get_incorrect_extra_questions()
+
+        if question_id in current:
+            current.remove(question_id)
+            self.incorrect_extra_questions = ','.join(map(str, current))
+            self.save()
+
+    def add_incorrect_extra_question(self, question_id):
+        current = self.get_incorrect_extra_questions()
+
+        if question_id not in current:
+            current.append(question_id)
+            self.incorrect_extra_questions = ','.join(map(str, current))
+            self.save()
+
     @property
     def check_if_passed(self):
         return self.percent_correct >= self.quiz.pass_mark
@@ -381,9 +422,17 @@ class Sitting(models.Model):
         self.user_answers = json.dumps(current)
         self.save()
 
-    @property
+    def add_user_extra_answer(self, question_id, guess):
+        current = json.loads(self.user_extra_answers)
+        current[question_id] = guess
+        self.user_extra_answers = json.dumps(current)
+        self.save()
+
     def get_user_answers(self):
         return json.loads(self.user_answers)
+
+    def get_user_extra_answers(self):
+        return json.loads(self.user_extra_answers)
 
     def get_questions(self, with_answers=False):
         question_ids = self.questions_id()
@@ -404,15 +453,3 @@ class Sitting(models.Model):
                 })
 
         return obj
-
-    @property
-    def max_score(self):
-        return len(self.questions_id())
-
-    def progress(self):
-        """
-        Returns the number of questions answered so far and the total number of questions.
-        """
-        answered = len(json.loads(self.user_answers))
-        total = self.max_score
-        return answered, total
