@@ -344,7 +344,7 @@ class Sitting(models.Model):
     def percent_correct_extra(self):
         total = len(self.get_user_extra_answers())
 
-        if total:
+        if total == 0:
             return 0.0
 
         corrects = total - len(self.get_incorrect_extra_questions())
